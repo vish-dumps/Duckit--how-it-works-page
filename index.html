@@ -1,1 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How it works - Duckit</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #f8f9fa;
+            --card-bg: #121212;
+            --card-inner: #1a1a1a;
+            --text-main: #ffffff;
+            --text-muted: #888888;
+            --accent: #05d59e;
+            --accent-glow: rgba(5, 213, 158, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: #111;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 2rem 4rem;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a.external-link::after {
+            content: '↗';
+            font-size: 0.75rem;
+            margin-left: 4px;
+        }
+
+        /* Header Section */
+        .section-header {
+            position: absolute;
+            top: 5.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            text-align: center;
+            margin: 0;
+            max-width: 800px;
+            z-index: 100;
+        }
+
+        .tagline {
+            color: #4a8c34;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .main-title {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            color: #111;
+        }
+
+        .pin-note {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+            max-width: 600px;
+            margin: 0;
+            text-transform: uppercase;
+            line-height: 1.5;
+            z-index: 100;
+        }
+
+        /* 3D Cards Container */
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            perspective: 1200px;
+            /* Crucial for the 3D tilt effect */
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 5rem;
+        }
+
+        /* Base Card Styling */
+        .card {
+            width: 340px;
+            height: 560px;
+            background-color: var(--card-bg);
+            border-radius: 28px;
+            padding: 0;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            transition: transform 0.65s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            border: 1px solid #2a2a2a;
+            overflow: hidden;
+        }
+
+        /* Static Layout Transforms (The Reference Image Look) */
+        .card.left {
+            transform: rotateY(15deg) rotateZ(2deg) scale(0.95);
+            box-shadow: -20px 30px 50px rgba(0, 0, 0, 0.1);
+        }
+
+        .card.center {
+            transform: translateZ(40px) scale(1.05);
+            z-index: 2;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
+            border: 1px solid #333;
+        }
+
+        .card.right {
+            transform: rotateY(-15deg) rotateZ(-2deg) scale(0.95);
+            box-shadow: 20px 30px 50px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Hover Glow Effect */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 28px;
+            background: radial-gradient(circle at 50% 0%, var(--accent-glow) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .card:hover::before,
+        .card.is-hovering::before {
+            opacity: 1;
+        }
+
+        .card.show-usecases::before {
+            background: radial-gradient(circle at 50% 100%, var(--accent-glow) 0%, transparent 60%);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            inset: -40% -140%;
+            background: linear-gradient(110deg,
+                    transparent 42%,
+                    rgba(255, 255, 255, 0.38) 50%,
+                    transparent 58%);
+            transform: translateX(-70%) rotate(10deg);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .card.is-hovering::after {
+            animation: cardLightSweep 750ms ease-out 1;
+        }
+
+        @keyframes cardLightSweep {
+            0% {
+                transform: translateX(-70%) rotate(10deg);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 0.95;
+            }
+
+            100% {
+                transform: translateX(70%) rotate(10deg);
+                opacity: 0;
+            }
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 1;
+        }
+
+        .card.show-usecases .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            inset: 0;
+            border-radius: 28px;
+            padding: 3rem 2rem 0 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .card-face.front {
+            pointer-events: auto;
+        }
+
+        .card-face.back {
+            pointer-events: none;
+        }
+
+        .card.show-usecases .card-face.front {
+            pointer-events: none;
+        }
+
+        .card.show-usecases .card-face.back {
+            pointer-events: auto;
+        }
+
+        .card-face.back {
+            transform: rotateY(180deg);
+            background: linear-gradient(180deg, #1a1a1a 0%, #121212 100%);
+        }
+
+        /* Card Content Inner (for parallax) */
+        .card-content {
+            transform: translateZ(30px);
+            /* Pushes content forward during 3D rotate */
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        /* Typography Inside Card */
+        .step-indicator {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .step-indicator::after {
+            content: '✦';
+            color: var(--accent);
+            font-size: 1rem;
+            position: absolute;
+            top: -5px;
+            right: -15px;
+        }
+
+        .card h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 0.75rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 2.5rem;
+        }
+
+        /* UI Mockups Container */
+        .ui-mockup {
+            width: 100%;
+            height: 200px;
+            background: var(--card-inner);
+            border-radius: 16px;
+            border: 1px solid #2a2a2a;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateZ(50px);
+            /* Extra parallax depth */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Mock UI Elements */
+        .ui-row {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1rem;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ui-text {
+            text-align: left;
+        }
+
+        .ui-text strong {
+            display: block;
+            font-size: 0.9rem;
+            color: #fff;
+            margin-bottom: 2px;
+        }
+
+        .ui-text span {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .ui-btn {
+            background: #222;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .dial-ring {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 2px dashed #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .dial-dot {
+            position: absolute;
+            top: -6px;
+            right: 15px;
+            width: 14px;
+            height: 14px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--accent);
+        }
+
+        .dial-center {
+            background: #111;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--accent);
+            border: 1px solid #222;
+        }
+
+        .toggle-group {
+            width: 100%;
+        }
+
+        .toggle-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .switch {
+            width: 36px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .switch::after {
+            content: '';
+            position: absolute;
+            right: 2px;
+            top: 2px;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .btn-group {
+            display: flex;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 4px;
+        }
+
+        .mock-toggle {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .mock-toggle.active {
+            background: #2a2a2a;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        .usecase-content {
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .usecase-label {
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            margin-bottom: 1rem;
+        }
+
+        .usecase-content h3 {
+            font-size: 1.55rem;
+            margin-bottom: 1rem;
+        }
+
+        .usecase-content p {
+            margin-bottom: 0;
+            color: #b7b7b7;
+            line-height: 1.65;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 1100px) {
+            .cards-container {
+                flex-direction: column;
+                gap: 3rem;
+            }
+
+            .card.left,
+            .card.center,
+            .card.right {
+                transform: none;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+
+            .card.left.show-usecases,
+            .card.center.show-usecases,
+            .card.right.show-usecases {
+                transform: rotateY(180deg);
+            }
+        }
+
+        /* Mode toggle */
+        .mode-toggle {
+            position: absolute;
+            top: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: #e7eee9;
+            border-radius: 999px;
+            padding: 0.35rem 0.5rem;
+            z-index: 200;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .mode-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #3c3c3c;
+        }
+
+        .mode-label.active {
+            color: #0e8a66;
+        }
+
+        .mode-switch {
+            position: relative;
+            width: 70px;
+            height: 34px;
+            background: #0e8a66;
+            border-radius: 999px;
+            padding: 4px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .mode-thumb {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 26px;
+            height: 26px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+            transition: transform 0.22s ease;
+        }
+
+        .mode-switch.is-usecases {
+            background: #111;
+        }
+
+        .mode-switch.is-usecases .mode-thumb {
+            transform: translateX(36px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mode-toggle" id="mode-toggle">
+        <span class="mode-label" data-mode="how">How it works</span>
+        <div class="mode-switch" id="mode-switch">
+            <div class="mode-thumb"></div>
+        </div>
+        <span class="mode-label" data-mode="use">Usecases</span>
+    </div>
+
+    <div class="section-header">
+        <h2 class="main-title">Welcome to DuckIt</h2>
+    </div>
+
+    <div class="cards-container">
+
+        <div class="card left">
+            <div class="card-inner">
+                <div class="card-face front">
+                    <div class="card-content">
+                        <div class="step-indicator">01</div>
+                        <h3>Lock Your<br>Music Tab</h3>
+                        <p>Auto-detects your music source for smart control.<br>
+                            Manual override available via Set / Update Tab.</p>
+
+                        <div class="ui-mockup" style="margin-top: 2rem;">
+                            <div class="ui-row">
+                                <div class="ui-text">
+                                    <strong>Music Detected</strong>
+                                    <span>Music Playing...</span>
+                                </div>
+                                <div class="ui-btn">Set</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-face back">
+                    <div class="card-content usecase-content">
+                        <span class="usecase-label">USECASE 1</span>
+                        <h3>Online Lectures + Notes</h3>
+                        <p>Watching a lecture on YouTube<br>
+                            Pausing to write notes<br>
+                            Music starts automatically<br>
+                            Resume lecture -> music pauses</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card center">
+            <div class="card-inner">
+                <div class="card-face front">
+                    <div class="card-content">
+                        <div class="step-indicator">02</div>
+                        <h3>Activate<br>Deep Focus</h3>
+                        <p>Choose from 5 low-pass focus modes
+                            to match your study intensity.</p>
+
+                        <div class="ui-mockup"
+                            style="margin-top: 2rem; background: linear-gradient(180deg, rgba(5,213,158,0.1) 0%, var(--card-inner) 100%);">
+                            <div class="dial-ring">
+                                <div class="dial-dot"></div>
+                                <div class="dial-center">FOCUS<br>ON</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-face back">
+                    <div class="card-content usecase-content">
+                        <span class="usecase-label">USECASE 2</span>
+                        <h3>Studying with Music</h3>
+                        <p>Studying with music?<br>
+                            Focus Mode applies intelligent low-pass filtering<br>
+                            to gently soften high frequencies and reduce sharp distractions.<br>
+                            Your music stays present - but never overpowering.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card right">
+            <div class="card-inner">
+                <div class="card-face front">
+                    <div class="card-content">
+                        <div class="step-indicator">03</div>
+                        <h3>Set Smart<br>Ducking</h3>
+                        <p>Automatically pause, mute, or duck
+                            background audio when conflicts occur</p>
+
+                        <div class="ui-mockup" style="margin-top: 2rem;">
+                            <div class="toggle-group">
+                                <div class="toggle-header">
+                                    <span>Priority Ducking</span>
+                                    <div class="switch"></div>
+                                </div>
+                                <div class="btn-group">
+                                    <div class="mock-toggle">Mute</div>
+                                    <div class="mock-toggle active">Pause</div>
+                                    <div class="mock-toggle">Vol</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-face back">
+                    <div class="card-content usecase-content">
+                        <span class="usecase-label">USECASE 3</span>
+                        <h3>Everyday Browsing</h3>
+                        <p>Listening to music while browsing?<br>
+                            When a video suddenly plays in another tab,<br>
+                            Duckit automatically manages the audio -<br>
+                            so you never deal with overlapping sound.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <p class="pin-note">Note: Pin your <a
+            href="https://chromewebstore.google.com/detail/duckit/lknekeleiajofocihoobbolhjhkidngh?authuser=0&hl=en"
+            target="_blank">Duckit extension</a> to your browser toolbar for instant access and better use.</p>
+
+    <script>
+        const cards = document.querySelectorAll('.card');
+        const modeSwitch = document.getElementById('mode-switch');
+        const modeToggle = document.getElementById('mode-toggle');
+        const modeLabels = document.querySelectorAll('.mode-label');
+        let usecasesVisible = false;
+
+        const getBaseTransform = (card) => {
+            const isCompact = window.matchMedia('(max-width: 1100px)').matches;
+            if (isCompact) {
+                return 'none';
+            }
+
+            if (card.classList.contains('left')) {
+                return 'rotateY(15deg) rotateZ(2deg) scale(0.95)';
+            }
+            if (card.classList.contains('center')) {
+                return 'translateZ(40px) scale(1.05)';
+            }
+            if (card.classList.contains('right')) {
+                return 'rotateY(-15deg) rotateZ(-2deg) scale(0.95)';
+            }
+            return '';
+        };
+
+        const applyCardRestState = (card) => {
+            card.style.transition = 'transform 0.65s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.4s ease';
+            card.style.transform = getBaseTransform(card);
+            card.style.zIndex = card.classList.contains('center') ? '2' : '1';
+        };
+
+        const setUsecaseMode = (enabled) => {
+            usecasesVisible = enabled;
+            cards.forEach(card => {
+                card.classList.toggle('show-usecases', enabled);
+                card.classList.remove('is-hovering');
+                applyCardRestState(card);
+            });
+        };
+
+        cards.forEach((card) => applyCardRestState(card));
+
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.classList.remove('is-hovering');
+                void card.offsetWidth; // Restart sweep animation on every hover entry
+                card.classList.add('is-hovering');
+            });
+
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left; // x pos within card
+                const y = e.clientY - rect.top;  // y pos within card
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const baseTransform = getBaseTransform(card);
+
+                // Calculate rotation based on cursor position (Max 12 degrees)
+                const rotateX = ((y - centerY) / centerY) * -12;
+                const rotateY = ((x - centerX) / centerX) * 12;
+
+                card.style.transition = 'none'; // Remove transition for instant cursor tracking
+                card.style.transform = `${baseTransform} perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.08, 1.08, 1.08)`;
+                card.style.zIndex = '10';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.classList.remove('is-hovering');
+                applyCardRestState(card);
+            });
+        });
+
+        const updateToggleUI = () => {
+            modeSwitch.classList.toggle('is-usecases', usecasesVisible);
+            modeLabels.forEach(label => {
+                const isUse = label.dataset.mode === 'use';
+                label.classList.toggle('active', usecasesVisible ? isUse : !isUse);
+            });
+        };
+
+        modeToggle?.addEventListener('click', () => {
+            setUsecaseMode(!usecasesVisible);
+            updateToggleUI();
+        });
+
+        updateToggleUI();
+    </script>
+
+</body>
+
+</html>
